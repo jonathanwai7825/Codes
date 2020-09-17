@@ -1,0 +1,90 @@
+---
+title: "Untitled"
+author: "jonathanwai"
+date: "26/11/2019"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+Design <- read_excel("C:\\Users\\Admin\\Desktop\\LIN.xlsx")
+Design
+```
+
+```{r}
+library(readxl)
+Design1 <- read_excel("C:\\Users\\Admin\\Desktop\\LIN.xlsx")
+Design1
+```
+
+1) Cube plot 
+```{r}
+install.packages("FrF2")
+```
+
+```{r}
+library(FrF2)
+a=c(Design$`Correct Answers`)
+cube1 <- lm(a~Smoking*Meditating*Hunger, data = Design)
+cubePlot(cube1,"Smoking","Meditating","Hunger",main = "Cube plot for investigation")
+```
+
+2) Estimated Variance of each 16 observations:
+```{r}
+fact.mod <-lm(a~Smoking*Hunger*Meditating, data = Design)
+round(summary(fact.mod)$coefficients,4)
+```
+
+3) Main effects and Interaction effects
+```{r}
+fact.mod <-lm(a~Smoking*Meditating*Hunger, data = Design)
+round(2*fact.mod$coefficients,2)
+```
+
+4) Individual 95% confidence Interval 
+This chart explains which can be explained by chance. 
+```{r}
+2*confint.lm(fact.mod)
+```
+
+5) Interaction plots
+```{r}
+interaction.plot(Design$Smoking, Design$Meditating, a, type = "l",
+                 xlab = "Smoking",trace.label = "Meditating",
+                 ylab = "Mean yield")
+```
+
+
+```{r}
+interaction.plot(Design$Smoking, Design$Hunger, a, type = "l",
+                 xlab = "Smoking",trace.label = "Hunger",
+                 ylab = "Mean yield")
+```
+
+```{r}
+interaction.plot(Design$Hunger, Design$Meditating, a, type = "l",
+                 xlab = "Hunger",trace.label = "Meditating",
+                 ylab = "Mean yield")
+```
+
+```{r}
+Design2 <- lm(a~Smoking*Hunger*Meditating, data = Design)
+round(2*Design2$coefficients,2)
+```
+
+6) Half Normal Plots 
+```{r}
+library(FrF2)
+DanielPlot(Design2,half = TRUE,autolab = F, main = "Normal plot of effects from  study")
+```
+
+
+
+
