@@ -1,7 +1,8 @@
 Attribute VB_Name = "Module1"
+
+
+
 Sub Reportchecklist()
-
-
 LastRow = Cells(Rows.Count, "A").End(xlUp).Row
 
     Dim counter
@@ -36,9 +37,9 @@ LastRow = Cells(Rows.Count, "A").End(xlUp).Row
     Loop
 End Sub
 
+
+
 Sub procedurechecklist()
-
-
 LastRow = Cells(Rows.Count, "A").End(xlUp).Row
 
     Dim counter
@@ -73,8 +74,10 @@ LastRow = Cells(Rows.Count, "A").End(xlUp).Row
     Loop
     
 End Sub
-Sub completionsignoff()
 
+
+
+Sub completionsignoff()
 LastRow = Cells(Rows.Count, "A").End(xlUp).Row
 
     Dim counter
@@ -110,8 +113,9 @@ LastRow = Cells(Rows.Count, "A").End(xlUp).Row
     
 End Sub
 
-Sub clientaccform()
 
+
+Sub clientaccform()
 LastRow = Cells(Rows.Count, "A").End(xlUp).Row
 
     Dim counter
