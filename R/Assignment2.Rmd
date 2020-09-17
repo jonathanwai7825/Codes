@@ -1,0 +1,186 @@
+---
+title: "Assignment 2"
+author: "Jonathan Wai, 1001472809"
+date: '2019-03-29'
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+## Read Table in R
+```{r}
+Dat=read.table("Census.txt", header=T)
+head(Dat)
+MALE<-Dat$MALE
+BIRTH<-Dat$BIRTH
+DIVO<-Dat$DIVO
+BEDS<-Dat$BEDS
+EDUC<-Dat$EDUC
+INCO<-Dat$INCO
+LIFE<-Dat$LIFE
+```
+## Part 2 (60 Marks): In this part, you may use all R commands you need, including lm() function, to answer the following questions.
+
+## (a) Fit the MLR model with LIFE (y) as the response variable, and MALE (x1), BIRTH(x2), DIVO (x3), BEDS (x4), EDUC (x5), and INCO (x6), as predictors. 
+```{r}
+multiple.regression <- lm(LIFE ~ MALE + BIRTH + DIVO + BEDS + EDUC + INCO , data=Dat)
+summary(multiple.regression)
+```
+
+## (b) At level alpha = 5%, conduct the F-test for the overall fit of the regression. Comment on the results.
+```{r}
+summary(multiple.regression)
+```
+We test the following Hypothesis:
+
+H0 : B1 =B2 = B3 = B4 = B5 = B6 = 0, HA : At least some of Bi != 0
+
+At level alpha = 0.05, we reject if pvalue of the significant level is less than alpha = 0.05 
+
+The ANOVA TABLE shows that P value = 0.00006112, indicating that we should clearly reject the null hypothesis
+
+At least 1 of the coefficients is not zero, therefore, overall the model is significant 
+
+Model fits the data better than the intercept-only model.
+
+
+## (c) At level alpha = 0.01, test each of the individual regression coefficients. Do the results indicate that any of the explanatory variables should be removed from the model?
+
+At alpha = 0.01, explanatory variables that should be removed includes: (EDUC, DIVO, MALE,INCO) 
+
+Not significant at 1% level
+
+## (d) Determine the regression model with the explanatory variable(s) identified in part (c) removed. Write down the estimated regression equation.
+```{r}
+NEWmultiple.regression <- lm(LIFE ~ BIRTH + BEDS, data=Dat)
+summary(NEWmultiple.regression)
+```
+The estimated regression equation is:
+
+LIFE = 79.1473186 - 0.3281679 * BIRTH  - 0.0027415 * BEDS 
+
+
+## (e) Perform a partial F-test at level alpha = 1% to determine whether the variables associated with MALE and INCO can be removed from the model 
+```{r}
+reduced= lm(LIFE ~ BIRTH + DIVO + BEDS + EDUC, data=Dat)
+full=  lm(LIFE ~ MALE + BIRTH + DIVO + BEDS + EDUC + INCO , data=Dat)
+anova(reduced, full)
+```
+This is partial f test: 
+
+H0: B1=B2=B3=B4=0 , k < p
+
+HA: H0 is not true 
+
+Fail to Reject Null Hypothesis 
+
+Coefficient Male and INCO does not significantly improve model, given all others included 
+
+## (f) Compute and report the F test statistic for comparing the two models
+```{r}
+Male.regression <- lm(LIFE ~ MALE, data = Dat)
+summary(Male.regression)
+```
+```{r}
+multiple.regression <- lm(LIFE ~ MALE + BIRTH + DIVO + BEDS + EDUC + INCO , data=Dat)
+summary(multiple.regression)
+```
+```{r}
+anova(Male.regression, multiple.regression)
+
+```
+F statistics is 7.0963 with a p value of 6.099e-05
+
+Conclude that atleast one of the coefficients are not equal to 0 
+
+Coefficients significantly improve the model given all others included 
+
+## (g) Perform a partial F-test at level alpha = 1% for comparing the two models
+```{r}
+life.regression <- lm(LIFE ~ 1, data = Dat)
+summary(life.regression)
+```
+```{r}
+g.regression <- lm(LIFE ~ MALE, BIRTH, data=Dat)
+summary(g.regression)
+```
+```{r}
+anova(life.regression, g.regression)
+```
+This is Partial F test: 
+
+H0: B1=B2=0 , k < p
+
+HA: B1 != B2 != 0 (H0 is not true) 
+
+Reject Null Hypothesis 
+
+Coefficient Male and BIRTH does significantly improve model
+
+Model fits the data better than the intercept-only model.
+
+
+## (h) Compute and report the terms in the decomposition
+Terms in decomposition
+
+SSreg(B1, B2, B3|B0) = 33.65
+
+SSreg(B3|B0)= 3.31
+
+SSreg(B2|B0,B3)=8.92
+
+SSreg(B1|B0,B3,B2)=21.42
+
+33.65 = 3.31 + 8.92 + 21.42
+
+Left Side equal Right Side
+
+Each term in the decomposition calculated below in order from left to right 
+```{r}
+model0 <- lm(LIFE ~ 1, data = Dat)
+MBD <- lm(formula = LIFE ~ MALE + BIRTH + DIVO, data = Dat)
+anova(model0,MBD)
+# 33.646
+```
+ssreg(B3|B0)
+```{r}
+model2 <- lm (LIFE ~ DIVO, data= Dat)
+anova(model0, model2)
+#3.31
+```
+SSreg(B2|B0,B3)
+```{r}
+model3 <- lm (LIFE ~ BIRTH + DIVO, data=Dat)
+anova(model2, model3)
+#8.92
+```
+```{r}
+model4 <- lm (LIFE ~ MALE + BIRTH + DIVO, data=Dat)
+anova(model3,model4)
+#21.42
+```
+
+## (i) Suppose we are interested in fitting a regression model using LIFE as the response variable and some subset of the variables (MALE, BIRTH, DIVO, and INCO) as predictor.
+
+## (i.1) Perform variable selection by finding the subset model that minimizes the AIC criteria. State the ’best model’.
+```{r,echo=FALSE}
+library('olsrr')
+ols_step_best_subset( lm( LIFE ~ MALE + BIRTH + DIVO + INCO, data=Dat)) 
+lm( LIFE ~ MALE + BIRTH + DIVO)
+```
+Best model: Life = 62.3656 + 0.1689 * MALE - 0.3912 * BIRTH - 0.1272  * DIVO 
+
+## (i.2) Perform variable selection using forward selection. State the ’best model’.
+```{r}
+ols_step_forward_p( lm( LIFE ~ MALE + BIRTH + DIVO + INCO, data=Dat)) 
+```
+```{r}
+lm( LIFE ~ MALE + BIRTH + DIVO)
+```
+Best model : Life = 62.3656  + 0.1689 * MALE - 0.3912 * BIRTH - 0.1272 * DIVO 
+
+## (i.3) Perform variable selection using backward selection. State the ’best model’.
+```{r}
+ols_step_backward_p( lm( LIFE ~ MALE + BIRTH + DIVO + INCO, data=Dat)) 
+```
+Best model : Life = 62.3656  + 0.1689 * MALE - 0.3912 * BIRTH - 0.1272 * DIVO 
