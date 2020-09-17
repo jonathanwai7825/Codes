@@ -1,0 +1,267 @@
+---
+title: "BTC vs Gold vs IBM stock"
+author: "jonathanwai"
+date: "03/11/2019"
+output:
+pdf_document: default
+html_document: default
+---
+
+```{r setup, include=TRUE, cache = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("readxl")
+```
+
+
+
+```{r}
+#1
+library(readxl)
+BTCNEW <- read_excel("BTCNEW.xlsx")
+BTC = BTCNEW$BTC
+qqnorm(BTC)
+qqline(BTC)
+boxplot(BTC)
+plot(density(BTC))
+# Data appears to be non-normal and not normally distributed.
+# Light tailed to the left 
+# Not symmetric 
+# Skewed to the right 
+# Light tailed to the left and heavy tailed to the right
+# Right tail is heavier 
+```
+
+```{r}
+#2
+sqrt.BTC=sqrt(BTC)
+qqnorm(sqrt.BTC)
+qqline(sqrt.BTC)
+boxplot(sqrt.BTC)
+plot(density(sqrt.BTC))
+
+# Not normally distributed
+# Slightly right skewed? 
+# Not symmetrically distributed, skewed to the right slightly 
+# Skewed to the right
+# Light tailed compared to normal distribution 
+# Right tail is heavier
+```
+
+```{r}
+#2
+log.BTC=log(BTC)
+qqnorm(log.BTC)
+qqline(log.BTC)
+boxplot(log.BTC)
+plot(density(log.BTC))
+
+# Not normally distributed
+# Left Skewed 
+# Not symmetrically distributed slightly skewed to the left 
+# Skewed to the left 
+# Right tail is lighter than left tail
+# Left tail is heavier (More Flat)
+```
+
+```{r}
+#3
+library(MASS)
+Box = boxcox(BTC~1, lambda=seq(0,1,1/100), ploti=TRUE)
+Results=data.frame(Box$x,Box$y)
+Results
+Box$x[which.max(Box$y)]
+```
+
+```{r}
+#4
+library(MASS)
+Box=boxcox(BTC~1, lambda=seq(0, 1, 1/100), plotit=TRUE)
+Results=data.frame(Box$x, Box$y)
+Results2 = Results[with(Results, order(-Results$Box.y)),]
+Box$x[which.max(Box$y)]
+Box$x[Box$y > max(Box$y) - 1/2 * qchisq(.99,1)]
+```
+
+```{r}
+install.packages("fGarch")
+```
+
+```{r}
+#5
+library(fGarch)
+sstdFit(BTC)
+```
+
+```{r}
+#6
+#The MLE estimate of the mean is 6000
+#The MLE estimate of the standard deviation is 3905.7
+#The MLE estimate of the shape parameter is 102200
+#The MLE estimate of xi is 9.3972
+```
+
+```{r}
+#Question 2
+#1
+library(readxl)
+LBMA_GOLD <- read_excel("GOLD.xlsx")
+Log.return = log(LBMA_GOLD$Price)
+plot.ts(Log.return)
+Diff.logreturn = diff(Log.return)
+plot.ts(Diff.logreturn)
+#The series of log returns appear to be nonstationary with 
+#more fluctuations at the beginning and the end of the 
+#observation period.
+```
+
+```{r}
+#2
+qqnorm(Log.return)
+boxplot(Log.return)
+plot(density(Log.return))
+#The qq plot shows a convex-concave pattern, indicating that
+#the series are light tailed compared to a normal distribution.
+#Additionally, the boxplot and the density plot show that 
+#the distribution of log returns is skewed to the right.
+```
+
+```{r}
+#3
+library(fGarch)
+objective_function = function(x){
+  f = -sum(log(dstd(Log.return,x[1],x[2],x[3])))
+}
+st_vec=c(mean(Log.return), sd(Log.return),5)
+fitstd=optim(st_vec,objective_function)
+fitstd$value
+fitstd$par
+stdFit(Log.return)
+#The MLE estimate of the mean is 7.153951
+#The MLE estimate of the standard deviation is 0.067682
+#The MLE estimate of the degrees of freedom is 3.057003
+```
+
+```{r}
+#4
+n=length(Log.return)
+AIC=2*3+2*fitstd$value
+BIC=log(n)*3+2*fitstd$value
+```
+
+```{r}
+#5
+objective_function = function(x){
+  f = -sum(log(dsstd(Log.return,x[1],x[2],x[3],x[4])))
+}
+st_vec=c(mean(Log.return), sd(Log.return),5,5)
+fitsstd=optim(st_vec,objective_function)
+fitsstd$value
+fitsstd$par
+#The MLE estimate of the mean is 7.163357
+#The MLE estimate of the standard deviation is 0.059701
+#The MLE estimate of the shape parameter is 8.242401
+#The MLE estimate of xi is 1.922331
+```
+
+```{r}
+#6
+AIC=2*3+2*fitsstd$value
+BIC=log(n)*3+2*fitsstd$value
+#Since both AIC and BIC are smaller for the 
+#skewed t distribution, the skewed t distribution 
+#is a betterfit for the log return data.
+```
+
+```{r}
+#Question 3
+#1
+library(readxl)
+IBM <- read_excel("IBM.xlsx")
+Price=IBM$Price
+Mean=mean(Price)
+Sddev=sd(Price)
+Skew=skewness(Price)
+Kurt=kurtosis(Price)
+```
+
+```{r}
+#2
+stdFit(Price)
+#The MLE estimate of the mean is 138.3119
+#The MLE estimate of the standard deviation is 13.5427
+#The MLE estimate of the shape parameter is 2.6319
+```
+
+```{r}
+#3
+VSample=vector()
+for (i in 1:1000){
+  s=sample(Price,1000,replace=TRUE)
+  VSample <- c(VSample,mean(s))
+}
+mean1=mean(VSample)
+mean1
+
+VModel=vector()
+for (i in 1:1000){
+  Vector=rstd(1000,138.311938,13.542733,2.631856)
+  VModel <- c(VModel,mean(Vector))
+}
+mean2=mean(VModel)
+mean2
+
+```
+
+```{r}
+#4
+qqnorm(VSample)
+qqnorm(VModel) 
+plot(density(VSample))
+plot(density(VModel))
+boxplot(VSample,VModel)
+#As expected the plots show that the model-based distribution
+#is skewed to the right, while the sample-based distribution
+#is more symmetric.
+```
+
+```{r}
+#5
+mean_diff=vector()
+for (i in 1:1000){
+  mean_diff=cbind(mean_diff,mean(MSample[1,i]-mean_sample)) 
+}
+q0.975=quantile(mean_diff,0.975)
+q0.025=quantile(mean_diff,0.025)
+Conf_lower=mean_sample-q0.975
+Conf_upper=mean_sample-q0.025
+
+mean_diff=vector()
+for (i in 1:1000){
+  mean_diff=cbind(mean_diff,mean(MModel[1,i]-mean_model)) 
+}
+q0.975=quantile(mean_diff,0.975)
+q0.025=quantile(mean_diff,0.025)
+Conf_lower=mean_model-q0.975
+Conf_upper=mean_model-q0.025
+
+#6
+BiasModelFree=mean_sample-mean(Price)
+BiasModel=mean_model-mean(Price)
+
+#7
+V=var(VSample)
+MSE=V+BiasModelFree^2
+```
