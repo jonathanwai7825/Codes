@@ -1,7 +1,6 @@
 ---
-title: 'Assignment 1 Rmarkdown'
+title: 'Rmarkdown'
 author: "Jonathan Wai"
-date: '2019-01-25'
 output: pdf_document
 ---
 
